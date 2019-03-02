@@ -1,17 +1,18 @@
 PKG_FOLDER = /home/dhosszejni/Development/vdf
 CC = ccache clang 
 CXX = ccache clang++ 
-CPPFLAGS = -I $(PKG_FOLDER)/include
+CPPFLAGS = 
 CFLAGS = 
 CXXFLAGS = -g -O0 -fPIC 
 TARGET = lib/libvdf.so
 
-LDFLAGS = 
-TEST_LDFLAGS = $(LDFLAGS) -Llib -lvdf -Wl,-rpath,$(PKG_FOLDER)/lib 
+OPENSSLLIB = $(shell pkg-config --libs openssl) 
+LDFLAGS = $(OPENSSLLIB)
+TEST_LDFLAGS = -Llib -lvdf -Wl,-rpath,$(PKG_FOLDER)/lib 
 
 src = $(wildcard src/*.cpp)
-trans_units = $(subst src/,,$(src))
-obj = obj/$(trans_units:.cpp=.o)
+objtmp = $(subst src/,obj/,$(src))
+obj = $(objtmp:.cpp=.o)
 testsrc = $(wildcard test/*.cpp)
 testbin = $(testsrc:.cpp=.out)
 
@@ -19,7 +20,7 @@ testbin = $(testsrc:.cpp=.out)
 all: $(TARGET) test
 
 $(TARGET): $(obj)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -shared $(LDFLAGS) -o $@ $^
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -shared -o $@ $^ $(LDFLAGS) 
 
 obj/%.o: src/%.cpp
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -o $@ -c $<
@@ -30,12 +31,22 @@ obj/%.o: src/%.cpp
 .PHONY: test
 test: $(testbin)
 
+test/test_openssl.out: test/test_openssl.cpp
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -o $@ $< $(OPENSSLLIB) 
+
 test/%.out: test/%.cpp $(TARGET)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(TEST_LDFLAGS) -o $@ $<
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -o $@ $< $(TEST_LDFLAGS)
+
+.PHONY: run
+run: $(testbin)
+	for testfile in $(testbin); do \
+		echo $$testfile; \
+	  ./$$testfile; \
+	done
 
 .PHONY: clean
 clean:
-	rm -f $(obj) $(TARGET)
+	rm -f $(obj) $(TARGET) $(testbin)
 
 #.PHONY: cleandep
 #cleandep:
