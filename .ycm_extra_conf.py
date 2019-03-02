@@ -1,9 +1,7 @@
 def FlagsForFile (filename, **kwargs):
     return {
-            'flags': ['-std=c++17',
+            'flags': ['-x', 'c++', '-std=c++17',
                 '-I', '/home/dhosszejni/.local/include',
-                '-I', '/home/dhosszejni/Development/vdf/include',
-                '-fopenmp=libomp', '-fpic',
-                '-pedantic', '-Wall',
-                '-g', '-c'],
+                #'-Wpedantic', '-Wall', '-Wextra', '-Wconversion',
+                '-g', '-c', '-O0'],
             }
