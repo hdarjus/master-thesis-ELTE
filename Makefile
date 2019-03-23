@@ -3,12 +3,12 @@ CC = ccache clang
 CXX = ccache clang++ 
 CPPFLAGS = 
 CFLAGS = 
-CXXFLAGS = -g -O0 -fPIC -fexception 
+CXXFLAGS = -g -O0 -fPIC -fexceptions 
 TARGET = lib/libvdf.so
 
 OPENSSLLIB = $(shell pkg-config --libs openssl) 
 LDFLAGS = $(OPENSSLLIB)
-TEST_LDFLAGS = -Llib -lvdf -Wl,-rpath,$(PKG_FOLDER)/lib 
+TEST_LDFLAGS = -Llib -lvdf $(OPENSSLLIB) -Wl,-rpath,$(PKG_FOLDER)/lib 
 
 src = $(wildcard src/*.cpp)
 objtmp = $(subst src/,obj/,$(src))
@@ -30,9 +30,6 @@ obj/%.o: src/%.cpp
 
 .PHONY: test
 test: $(testbin)
-
-test/test_openssl.out: test/test_openssl.cpp
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -o $@ $< $(OPENSSLLIB) 
 
 test/%.out: test/%.cpp $(TARGET)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -o $@ $< $(TEST_LDFLAGS)
