@@ -3,7 +3,7 @@ CC = ccache clang
 CXX = ccache clang++ 
 CPPFLAGS = 
 CFLAGS = 
-CXXFLAGS = -g -O0 -fPIC 
+CXXFLAGS = -g -O0 -fPIC -fexception 
 TARGET = lib/libvdf.so
 
 OPENSSLLIB = $(shell pkg-config --libs openssl) 
