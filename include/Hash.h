@@ -1,10 +1,3 @@
-/*
- *
- * partly taken from
- * https://wiki.openssl.org/index.php/EVP_Symmetric_Encryption_and_Decryption
- *
- */
-
 #include <openssl/evp.h>
 #include <openssl/bn.h>
 #include "types.h"

@@ -1,3 +1,9 @@
+/*
+ * source:
+ * https://wiki.openssl.org/index.php/EVP_Symmetric_Encryption_and_Decryption
+ * Used for testing.
+ */
+
 #include <iostream>
 #include <string>
 #include <cstring>
