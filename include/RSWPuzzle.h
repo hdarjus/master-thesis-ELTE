@@ -1,25 +1,25 @@
 #ifndef _RSW_PUZZLE_H_
 #define _RSW_PUZZLE_H_
 
-extern "C" {
 #include <openssl/bn.h>
 #include <openssl/rand.h>
-}
 
 class RSWPuzzle {
 public:
-  RSWPuzzle (const BIGNUM* N, const BIGNUM* x, const BIGNUM* T);
-  RSWPuzzle (BN_CTX* ctx, const int lambda, const BIGNUM* x, const BIGNUM* T);
+  RSWPuzzle (const BIGNUM* _N, const int _lambda, const BIGNUM* _x, const BIGNUM* _T);
+  RSWPuzzle (const BN_CTX* ctx, const int _lambda, const BIGNUM* _x, const BIGNUM* _T);
   ~RSWPuzzle ();
 
-  const BIGNUM* N() const;
-  const BIGNUM* x() const;
-  const BIGNUM* T() const;
+  const BIGNUM* get_N() const;
+  const BIGNUM* get_x() const;
+  const BIGNUM* get_T() const;
+  const int get_lambda() const;
   
 private:
-  BIGNUM* _N;
-  BIGNUM* _x;
-  BIGNUM* _T;
+  BIGNUM* N;
+  BIGNUM* x;
+  BIGNUM* T;
+  const int lambda;
 };
 
 #endif  // _RSWPUZZLE_H_
