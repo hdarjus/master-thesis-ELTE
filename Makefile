@@ -1,4 +1,4 @@
-PKG_FOLDER = /home/dhosszejni/Development/vdf
+PKG_FOLDER = $(shell pwd -P)
 CC = ccache clang 
 CXX = ccache clang++ 
 CPPFLAGS = 
