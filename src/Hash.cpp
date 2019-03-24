@@ -7,12 +7,12 @@
 
 Hash::Hash(const int _lambda, const unsigned int _key_size, const unsigned int _block_size) :
   lambda(_lambda), ctx(EVP_CIPHER_CTX_free_ptr(EVP_CIPHER_CTX_new(), ::EVP_CIPHER_CTX_free)) {
-  key_size = _key_size;
-  block_size = _block_size;
-  if (block_size != 128) {
+  const unsigned int key_size = _key_size;
+  const unsigned int block_size = _block_size;
+  if (block_size != 128/divisor) {
     throw std::runtime_error("block_size not yet implemented");
   }
-  switch (key_size) {
+  switch (key_size*divisor) {
     case 128:
       cipher = EVP_aes_128_ctr;
       break;
@@ -27,16 +27,50 @@ Hash::Hash(const int _lambda, const unsigned int _key_size, const unsigned int _
   }
 
   int error = 0;
-  error = RAND_bytes(key.get(), key_size);
+  key.resize(key_size);
+  error = RAND_bytes(key.data(), key_size);
   if (error != 1)
     throw std::runtime_error("Failed to create 'key'");
-  error = RAND_bytes(iv.get(), block_size);
+  iv.resize(block_size);
+  error = RAND_bytes(iv.data(), block_size);
   if (error != 1)
     throw std::runtime_error("Failed to create 'iv'");
 
   EVP_add_cipher(cipher());
 
-  error = EVP_EncryptInit_ex(ctx.get(), cipher(), NULL, key.get(), iv.get());
+  error = EVP_EncryptInit_ex(ctx.get(), cipher(), NULL, key.data(), iv.data());
+  if (error != 1)
+    throw std::runtime_error("EVP_EncryptInit_ex failed");
+}
+
+Hash::Hash(const int _lambda, const bytevec& _key, const bytevec& _iv) :
+  lambda(_lambda), ctx(EVP_CIPHER_CTX_free_ptr(EVP_CIPHER_CTX_new(), ::EVP_CIPHER_CTX_free)) {
+  key = _key;  // copy
+  iv = _iv;  // copy
+  const unsigned int key_size = key.size();
+  const unsigned int block_size = iv.size();
+
+  if (block_size != 128/divisor) {
+    throw std::runtime_error("block_size not yet implemented");
+  }
+  switch (key_size*divisor) {
+    case 128:
+      cipher = EVP_aes_128_ctr;
+      break;
+    case 192:
+      cipher = EVP_aes_192_ctr;
+      break;
+    case 256:
+      cipher = EVP_aes_256_ctr;
+      break;
+    default:
+      throw std::runtime_error("key_size not yet implemented");
+  }
+
+  EVP_add_cipher(cipher());
+
+  int error = 0;
+  error = EVP_EncryptInit_ex(ctx.get(), cipher(), NULL, key.data(), iv.data());
   if (error != 1)
     throw std::runtime_error("EVP_EncryptInit_ex failed");
 }
@@ -47,7 +81,7 @@ const void Hash::hash(const BIGNUM* in, BIGNUM* out) const {
   BN_bn2bin(in, &ptext[0]);
 
   // the output also goes first into a safe container
-  ctext.resize(ptext.size()+block_size);
+  ctext.resize(ptext.size()+get_block_size());
   int out_len1 = (int)ctext.size();
 
   // encryption
@@ -68,6 +102,14 @@ const void Hash::hash(const BIGNUM* in, BIGNUM* out) const {
   // convert to BIGNUM
   BN_bin2bn((const byte*)&ctext[0], (int)ctext.size(), out);
   BN_mask_bits(out, lambda);
+}
+
+const unsigned int Hash::get_key_size() const {
+  return key.size();
+}
+
+const unsigned int Hash::get_block_size() const {
+  return iv.size();
 }
 
 #endif  // HASH_H_

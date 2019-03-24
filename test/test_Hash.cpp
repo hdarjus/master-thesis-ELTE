@@ -4,9 +4,9 @@
 #include <iostream>
 #include <cstring>
 
-void gen_params(byte_ptr& key, byte_ptr& iv, const unsigned int key_size, const unsigned int block_size);
-void aes_encrypt(const byte_ptr& key, const byte_ptr& iv, const BIGNUM* pnum, BIGNUM* cnum, const unsigned int block_size);
-void aes_decrypt(const byte_ptr& key, const byte_ptr& iv, const BIGNUM* cnum, BIGNUM* rnum);
+void gen_params(bytevec& key, bytevec& iv);
+void aes_encrypt(const bytevec& key, const bytevec& iv, const BIGNUM* pnum, BIGNUM* cnum);
+void aes_decrypt(const bytevec& key, const bytevec& iv, const BIGNUM* cnum, BIGNUM* rnum);
 
 // clang++ -Wall -std=c++11 evp-encrypt.cxx -o evp-encrypt.out `pkg-config --libs openssl`
 int main(int argc, char* argv[]) {
@@ -26,24 +26,32 @@ int main(int argc, char* argv[]) {
 
     BN_dec2bn(&pnum, "1110111011101110111011101110111011101110111011101110111011101110111011101110111011101110111011101110111011101110");
 
-    byte_ptr key(new byte[key_size]);
-    byte_ptr iv(new byte[block_size]);
-    gen_params(key, iv, key_size, block_size);
+    bytevec key(key_size);
+    bytevec iv(block_size);
+    gen_params(key, iv);
+
+    // does Hash encrypt correctly?
+    Hash hash20(20, key, iv);
+    BIGNUM* hash20_num = BN_CTX_get(ctx);
+    hash20.hash(pnum, hash20_num);
   
     // does encryption/decryption work?
-    aes_encrypt(key, iv, pnum, cnum, block_size);
+    aes_encrypt(key, iv, pnum, cnum);
     aes_decrypt(key, iv, cnum, rnum);
 
-    // if yes, does Hash encrypt correctly?
-    // TODO test Hash against cnum with large lambda
-
-    char* pstr = BN_bn2dec(pnum);
-    char* rstr = BN_bn2dec(rnum);
+    char* pstr = BN_bn2hex(pnum);
+    char* rstr = BN_bn2hex(rnum);
+    char* cstr = BN_bn2hex(cnum);
+    char* hash20_str = BN_bn2hex(hash20_num);
     std::cout << "Original message:\n" << pstr << std::endl;
     std::cout << "Recovered message:\n" << rstr << std::endl;
+    std::cout << "Full hash message:\n" << cstr << std::endl;
+    std::cout << "Hash20 message:\n" << hash20_str << std::endl;
 
     OPENSSL_free(pstr);
     OPENSSL_free(rstr);
+    OPENSSL_free(cstr);
+    OPENSSL_free(hash20_str);
     BN_CTX_end(ctx);
     BN_CTX_free(ctx);
 
@@ -51,36 +59,36 @@ int main(int argc, char* argv[]) {
 }
 
 void gen_params(
-    byte_ptr& key,
-    byte_ptr& iv,
-    const unsigned int key_size,
-    const unsigned int block_size) {
+    bytevec& key,
+    bytevec& iv) {
 
-    int rc = RAND_bytes(key.get(), key_size);
+    const unsigned int key_size = key.size();
+    int rc = RAND_bytes(key.data(), key_size);
     if (rc != 1)
       throw std::runtime_error("RAND_bytes key failed");
 
-    rc = RAND_bytes(iv.get(), block_size);
+    const unsigned int block_size = iv.size();
+    rc = RAND_bytes(iv.data(), block_size);
     if (rc != 1)
       throw std::runtime_error("RAND_bytes for iv failed");
 }
 
 void aes_encrypt(
-    const byte_ptr& key,
-    const byte_ptr& iv,
+    const bytevec& key,
+    const bytevec& iv,
     const BIGNUM* pnum,
-    BIGNUM* cnum,
-    const unsigned int block_size) {
+    BIGNUM* cnum) {
 
     secure_string ptext, ctext;
     ptext.resize(BN_num_bytes(pnum));
     BN_bn2bin(pnum, &ptext[0]);
 
     EVP_CIPHER_CTX_free_ptr ctx(EVP_CIPHER_CTX_new(), ::EVP_CIPHER_CTX_free);
-    int rc = EVP_EncryptInit_ex(ctx.get(), EVP_aes_256_ctr(), NULL, key.get(), iv.get());
+    int rc = EVP_EncryptInit_ex(ctx.get(), EVP_aes_256_ctr(), NULL, key.data(), iv.data());
     if (rc != 1)
       throw std::runtime_error("EVP_EncryptInit_ex failed");
 
+    const unsigned int block_size = iv.size();
     // Recovered text expands upto BLOCK_SIZE
     ctext.resize(ptext.size()+block_size);
     std::cout << ctext.size() << std::endl;
@@ -107,8 +115,8 @@ void aes_encrypt(
 }
 
 void aes_decrypt (
-    const byte_ptr& key,
-    const byte_ptr& iv,
+    const bytevec& key,
+    const bytevec& iv,
     const BIGNUM* cnum,
     BIGNUM* rnum) {
 
@@ -117,7 +125,7 @@ void aes_decrypt (
     BN_bn2bin(cnum, &ctext[0]);
 
     EVP_CIPHER_CTX_free_ptr ctx(EVP_CIPHER_CTX_new(), ::EVP_CIPHER_CTX_free);
-    int rc = EVP_DecryptInit_ex(ctx.get(), EVP_aes_256_ctr(), NULL, key.get(), iv.get());
+    int rc = EVP_DecryptInit_ex(ctx.get(), EVP_aes_256_ctr(), NULL, key.data(), iv.data());
     if (rc != 1)
       throw std::runtime_error("EVP_DecryptInit_ex failed");
 

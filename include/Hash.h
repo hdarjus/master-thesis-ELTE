@@ -12,22 +12,26 @@
 
 class Hash {  // probably implement this as an std::hash struct?
 public:
-  Hash(const int lambda, const unsigned int key_size = 256/(CHAR_BIT*sizeof(byte)), const unsigned int block_size = 128/(CHAR_BIT*sizeof(byte)));
+  Hash(const int _lambda, const unsigned int _key_size = 256/divisor, const unsigned int _block_size = 128/divisor);
+  Hash(const int _lambda, const bytevec& _key, const bytevec& _iv);
   ~Hash() = default;
 
   const void hash(const BIGNUM* in, BIGNUM* out) const;
 
+  const unsigned int get_key_size() const;
+  const unsigned int get_block_size() const;
+
+  static const unsigned int divisor = CHAR_BIT*sizeof(byte);
+
 private:
-  unsigned int key_size;
-  unsigned int block_size;
   const int lambda;
 
   // cipher function
   std::function<const EVP_CIPHER*()> cipher;
 
   // unique_ptr members for memory safety
-  byte_ptr key;
-  byte_ptr iv;
+  bytevec key;
+  bytevec iv;
   EVP_CIPHER_CTX_free_ptr ctx;
 
   // helpers for memory safety
