@@ -5,8 +5,8 @@
 
 class Hash {  // probably implement this as an std::hash struct?
 public:
-  Hash(const int _lambda, const unsigned int _key_size = 256/divisor, const unsigned int _block_size = 128/divisor);
-  Hash(const int _lambda, const bytevec& _key, const bytevec& _iv);
+  Hash(const unsigned long _lambda, const unsigned int _key_size = 256/divisor, const unsigned int _block_size = 128/divisor);
+  Hash(const unsigned long _lambda, const bytevec& _key, const bytevec& _iv);
   ~Hash() = default;
 
   const void hash(const BIGNUM* in, BIGNUM* out) const;
@@ -17,7 +17,7 @@ public:
   static const unsigned int divisor = CHAR_BIT*sizeof(byte);
 
 private:
-  const int lambda;
+  const unsigned long lambda;
 
   // cipher function
   std::function<const EVP_CIPHER*()> cipher;

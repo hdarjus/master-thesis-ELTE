@@ -5,7 +5,7 @@
 #include <exception>
 #include <openssl/rand.h>
 
-Hash::Hash(const int _lambda, const unsigned int _key_size, const unsigned int _block_size) :
+Hash::Hash(const unsigned long _lambda, const unsigned int _key_size, const unsigned int _block_size) :
   lambda(_lambda), ctx(EVP_CIPHER_CTX_free_ptr(EVP_CIPHER_CTX_new(), ::EVP_CIPHER_CTX_free)) {
   const unsigned int key_size = _key_size;
   const unsigned int block_size = _block_size;
@@ -43,7 +43,7 @@ Hash::Hash(const int _lambda, const unsigned int _key_size, const unsigned int _
     throw std::runtime_error("EVP_EncryptInit_ex failed");
 }
 
-Hash::Hash(const int _lambda, const bytevec& _key, const bytevec& _iv) :
+Hash::Hash(const unsigned long _lambda, const bytevec& _key, const bytevec& _iv) :
   lambda(_lambda), ctx(EVP_CIPHER_CTX_free_ptr(EVP_CIPHER_CTX_new(), ::EVP_CIPHER_CTX_free)) {
   key = _key;  // copy
   iv = _iv;  // copy
