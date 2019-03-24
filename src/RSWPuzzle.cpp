@@ -1,36 +1,71 @@
 #include "../include/RSWPuzzle.h"
 
-RSWPuzzle::RSWPuzzle (const BIGNUM* N, const BIGNUM* x, const BIGNUM* T): _N(BN_dup(N)), _x(BN_dup(x)), _T(BN_dup(T)) { }
+RSWPuzzle::RSWPuzzle(
+    const unsigned long _lambda,
+    const unsigned long _T,
+    const bytevec& _x) :
+      lambda(_lambda), T(_T) {
+  x = BN_new();
 
-RSWPuzzle::RSWPuzzle (BN_CTX* ctx, const int lambda, const BIGNUM* x, const BIGNUM* T): _x(BN_dup(x)), _T(BN_dup(T)) {
-  _N = BN_new();
-  BIGNUM *p, *q;
+  BN_bin2bn(_x.data(), _x.size(), x);
+}
+
+RSWPuzzle::RSWPuzzle(
+    const unsigned long _lambda,
+    const unsigned long _T,
+    const bytevec& _x,
+    const bytevec& _N) :
+      RSWPuzzle(_lambda, _T, _x) {
+  N = BN_new();
+  BN_bin2bn(_N.data(), _N.size(), N);
+}
+
+RSWPuzzle::RSWPuzzle(
+    const unsigned long _lambda,
+    const unsigned long _T,
+    const bytevec& _x,
+    const unsigned long _lambdaRSW) :
+      RSWPuzzle(_lambda, _T, _x) {
+  N = BN_new();
+
+  BN_CTX* ctx = BN_CTX_new();
   BN_CTX_start(ctx);
+  BIGNUM* p, * q;
   p = BN_CTX_get(ctx);
   q = BN_CTX_get(ctx);
 
-  BN_generate_prime_ex(p, lambda+3, 1, NULL, NULL, NULL);
-  BN_generate_prime_ex(q, lambda+5, 1, NULL, NULL, NULL);
-  BN_mul(_N, p, q, ctx);
+  BN_generate_prime_ex(p, _lambdaRSW/2, 1, NULL, NULL, NULL);
+  BN_generate_prime_ex(q, _lambdaRSW/2, 1, NULL, NULL, NULL);
+  BN_mul(N, p, q, ctx);
 
   BN_CTX_end(ctx);
+  BN_CTX_free(ctx);
 }
 
-RSWPuzzle::~RSWPuzzle () {
-  BN_free(_N);
-  BN_free(_x);
-  BN_free(_T);
+RSWPuzzle::~RSWPuzzle() {
+  BN_free(N);
+  BN_free(x);
 }
 
-const BIGNUM* RSWPuzzle::N() const {
-  return _N;
+bytevec bn2bytevec(const BIGNUM* in) {
+  bytevec vec(BN_num_bytes(in));
+  BN_bn2bin(in, vec.data());
+  return vec;
 }
 
-const BIGNUM* RSWPuzzle::x() const {
-  return _x;
+bytevec RSWPuzzle::get_N() const {
+  return bn2bytevec(N);
 }
 
-const BIGNUM* RSWPuzzle::T() const {
-  return _T;
+bytevec RSWPuzzle::get_x() const {
+  return bn2bytevec(x);
+}
+
+unsigned long RSWPuzzle::get_T() const {
+  return T;
+}
+
+unsigned long RSWPuzzle::get_lambda() const {
+  return lambda;
 }
 

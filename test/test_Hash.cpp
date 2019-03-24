@@ -8,7 +8,6 @@ void gen_params(bytevec& key, bytevec& iv);
 void aes_encrypt(const bytevec& key, const bytevec& iv, const BIGNUM* pnum, BIGNUM* cnum);
 void aes_decrypt(const bytevec& key, const bytevec& iv, const BIGNUM* cnum, BIGNUM* rnum);
 
-// clang++ -Wall -std=c++11 evp-encrypt.cxx -o evp-encrypt.out `pkg-config --libs openssl`
 int main(int argc, char* argv[]) {
     const unsigned int key_size = 256/(CHAR_BIT*sizeof(byte));  // because we're using AES-256
     const unsigned int block_size = 128/(CHAR_BIT*sizeof(byte));
