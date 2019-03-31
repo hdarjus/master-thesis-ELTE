@@ -1,5 +1,4 @@
-#ifndef _SAFE_PRIMES_H_
-#define _SAFE_PRIMES_H_
+#pragma once
 
 extern "C" {
 #include <openssl/bn.h>
@@ -22,4 +21,3 @@ private:
   std::string str;
 };
 
-#endif  // _SAFE_PRIMES_H_

@@ -1,5 +1,4 @@
-#ifndef _BIG_NUM_H_
-#define _BIG_NUM_H_
+#pragma once
 
 extern "C" {
 #include <openssl/bn.h>
@@ -33,6 +32,4 @@ public:
 private:
   BIGNUM* value;
 };
-
-#endif  // _BIG_NUM_H_
 

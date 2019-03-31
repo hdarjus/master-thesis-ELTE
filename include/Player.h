@@ -1,7 +1,19 @@
-#ifndef _PLAYER_H_
-#define _PLAYER_H_
+#pragma once
 
-class Player {};
+#include "types.h"
+#include "Lottery.hpp"
 
-#endif  // _PLAYER_H_
+class Player {
+public:
+  Player(const int m);
+  ~Player() = default;
+
+  void add_money(const int m);
+
+  template<VDF_version w>
+  void play(Lottery<w>& l, const int m);
+  
+private:
+  int money;
+};
 

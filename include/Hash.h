@@ -1,3 +1,5 @@
+#pragma once
+
 #include <openssl/evp.h>
 #include <openssl/bn.h>
 #include "types.h"
@@ -7,6 +9,7 @@ class Hash {  // probably implement this as an std::hash struct?
 public:
   Hash(const unsigned long _lambda, const unsigned int _key_size = 256/divisor, const unsigned int _block_size = 128/divisor);
   Hash(const unsigned long _lambda, const bytevec& _key, const bytevec& _iv);
+  Hash(const Hash& other);
   ~Hash() = default;
 
   const void hash(const BIGNUM* in, BIGNUM* out) const;

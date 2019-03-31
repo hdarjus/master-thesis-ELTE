@@ -1,11 +1,11 @@
-#ifndef _LOTTERY_HPP_
-#define _LOTTERY_HPP_
+#pragma once
 
-#include "types.h"
 #include "Verifier.hpp"
 #include "Player.h"
 #include <functional>
 #include <utility>
+
+using PlayerNULL = std::unique_ptr<Player>;
 
 template<VDF_version m>
 class Lottery {
@@ -16,10 +16,8 @@ public:
 
 private:
   Verifier<m> verifier;
-  money pot;
+  int pot;
   std::function<bool(const bytevec&)> judge;
-  std::pair<Player, Player> players;
+  std::pair<PlayerNULL, PlayerNULL> players;
 };
-
-#endif  // _LOTTERY_HPP_
 

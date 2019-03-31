@@ -1,4 +1,5 @@
 #include "../include/Hash.h"
+#include "../include/util.h"
 #include <openssl/bn.h>
 #include <openssl/rand.h>
 #include <iostream>
@@ -38,19 +39,14 @@ int main(int argc, char* argv[]) {
     aes_encrypt(key, iv, pnum, cnum);
     aes_decrypt(key, iv, cnum, rnum);
 
-    char* pstr = BN_bn2hex(pnum);
-    char* rstr = BN_bn2hex(rnum);
-    char* cstr = BN_bn2hex(cnum);
-    char* hash20_str = BN_bn2hex(hash20_num);
-    std::cout << "Original message:\n" << pstr << std::endl;
-    std::cout << "Recovered message:\n" << rstr << std::endl;
-    std::cout << "Full hash message:\n" << cstr << std::endl;
-    std::cout << "Hash20 message:\n" << hash20_str << std::endl;
+    std::cout << "Original message:\n" << print_bn_hex(pnum) << std::endl;
+    std::cout << "Recovered message:\n" << print_bn_hex(rnum) << std::endl;
+    std::cout << "Full hash message:\n" << print_bn_hex(cnum) << std::endl;
+    std::cout << "Hash20 message:\n" << print_bn_hex(hash20_num) << std::endl;
 
-    OPENSSL_free(pstr);
-    OPENSSL_free(rstr);
-    OPENSSL_free(cstr);
-    OPENSSL_free(hash20_str);
+    hash20.hash(pnum, hash20_num);
+    std::cout << "Hash20 message again:\n" << print_bn_hex(hash20_num) << std::endl;
+
     BN_CTX_end(ctx);
     BN_CTX_free(ctx);
 

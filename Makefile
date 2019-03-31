@@ -1,7 +1,7 @@
 PKG_FOLDER = $(shell pwd -P)
 CC = ccache clang 
 CXX = ccache clang++ 
-CPPFLAGS = 
+CPPFLAGS = -D_DEBUG 
 CFLAGS = 
 CXXFLAGS = -g -O0 -fPIC -fexceptions 
 TARGET = lib/libvdf.so
@@ -15,6 +15,7 @@ objtmp = $(subst src/,obj/,$(src))
 obj = $(objtmp:.cpp=.o)
 testsrc = $(wildcard test/*.cpp)
 testbin = $(testsrc:.cpp=.out)
+testdep = $(testsrc:.cpp=.d)
 
 .PHONY: all
 all: $(TARGET) test
@@ -25,13 +26,15 @@ $(TARGET): $(obj)
 obj/%.o: src/%.cpp
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -o $@ -c $<
 
-## %.d: %.cpp
-##    @$(CPP) $(CFLAGS) $< -MM -MT $(@:.d=.o) >$@
-
 .PHONY: test
-test: $(testbin)
+test: $(testbin) $(testdep)
 
-test/%.out: test/%.cpp $(TARGET)
+test/%.d: test/%.cpp
+	$(CXX) $(CXXLAGS) $< -MM -MT $(@:.d=.o) >$@
+
+-include $(testdep)
+
+test/%.out: test/%.cpp $(TARGET) test/%.d
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -o $@ $< $(TEST_LDFLAGS)
 
 .PHONY: run
@@ -45,7 +48,7 @@ run: $(testbin)
 clean:
 	rm -f $(obj) $(TARGET) $(testbin)
 
-#.PHONY: cleandep
-#cleandep:
-#  rm -f $(dep)
+.PHONY: cleandep
+cleandep:
+	rm -f $(testdep)
 

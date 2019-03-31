@@ -129,8 +129,7 @@
  * [including the GNU Public Licence.]
  */
 
-#ifndef _ZALLOCATOR_HPP_
-#define _ZALLOCATOR_HPP_
+#pragma once
 
 #include <string>
 #include <limits>
@@ -190,6 +189,4 @@ class zallocator {
     }
 #endif
 };
-
-#endif  // _ZALLOCATOR_HPP_
 
