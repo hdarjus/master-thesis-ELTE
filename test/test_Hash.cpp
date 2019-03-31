@@ -33,7 +33,7 @@ int main(int argc, char* argv[]) {
     // does Hash encrypt correctly?
     Hash hash20(20, key, iv);
     BIGNUM* hash20_num = BN_CTX_get(ctx);
-    hash20.hash(pnum, hash20_num);
+    hash20(pnum, hash20_num);
   
     // does encryption/decryption work?
     aes_encrypt(key, iv, pnum, cnum);
@@ -44,7 +44,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Full hash message:\n" << print_bn_hex(cnum) << std::endl;
     std::cout << "Hash20 message:\n" << print_bn_hex(hash20_num) << std::endl;
 
-    hash20.hash(pnum, hash20_num);
+    hash20(pnum, hash20_num);
     std::cout << "Hash20 message again:\n" << print_bn_hex(hash20_num) << std::endl;
 
     BN_CTX_end(ctx);

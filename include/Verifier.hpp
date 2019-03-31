@@ -43,7 +43,7 @@ public:
     return puzzle;
   }
 
-  bool verify(const solution& sol) const {
+  bool operator()(const solution& sol) const {
     BN_CTX_start(ctx);
 
     // constants
@@ -97,7 +97,7 @@ public:
       BN_copy(xymu, xy_help);
       BN_add(xymu, xymu, mu_prime);
         std::cout << "xymu:\t" << print_bn_hex(xymu) << std::endl;
-      hash.hash(xymu, r);
+      hash(xymu, r);
         std::cout << "r:\t" << print_bn(r) << std::endl;
       // get the new x
       BN_mod_exp(prod_help, x, r, N, ctx);
@@ -150,7 +150,7 @@ public:
     return puzzle;
   }
 
-  bool verify(const solution& sol) const {
+  bool operator()(const solution& sol) const {
     return true;  // TODO
   }
 

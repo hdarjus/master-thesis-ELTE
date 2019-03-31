@@ -6,7 +6,7 @@
 int main(int argc, char* argv[]) {
   Verifier<VDF_version::PIETRZAK> verifier(20, 64, {97}, 50);
   Prover<VDF_version::PIETRZAK> prover;
-  const auto sol = prover.prove(verifier);
+  const auto sol = prover(verifier);
 
   //std::vector<bytevec> pi = sol.first;
   //std::cout << print_bytevec(sol.second) << std::endl << std::endl;
@@ -16,7 +16,7 @@ int main(int argc, char* argv[]) {
 
   std::cout << "--------------" << std::endl;
 
-  if (verifier.verify(sol)) {
+  if (verifier(sol)) {
     std::cout << "Good: Verified" << std::endl;
   } else {
     std::cout << "Oh no: Falsified" << std::endl;
@@ -30,20 +30,19 @@ int main(int argc, char* argv[]) {
 
   std::cout << "--------------" << std::endl;
 
-  if (verifier.verify(sol)) {
+  if (verifier(sol)) {
     std::cout << "Good: Verified" << std::endl;
   } else {
     std::cout << "Oh no: Falsified" << std::endl;
   }
 
-  /*
   // Reproducible
   Verifier<VDF_version::PIETRZAK> verifier2(20, 64, {97}, 50);
   Prover<VDF_version::PIETRZAK> prover2;
-  const auto sol2 = prover2.prove(verifier2);
+  const auto sol2 = prover2(verifier2);
   auto sol3 = sol2;
 
-  if (verifier2.verify(sol2)) {
+  if (verifier2(sol2)) {
     std::cout << "Good: Verified" << std::endl;
   } else {
     std::cout << "Oh no: Falsified" << std::endl;
@@ -51,14 +50,12 @@ int main(int argc, char* argv[]) {
 
   sol3.first[2][1]++;  // ruin the proof
 
-  if (verifier.verify(sol3)) {
+  if (verifier(sol3)) {
     std::cout << "Oh no: Verified" << std::endl;
   } else {
     std::cout << "Good: Falsified" << std::endl;
   }
 
-
-  */
   return 0;
 }
 

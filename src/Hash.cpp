@@ -67,7 +67,7 @@ Hash::Hash(const Hash& other) :
     ctx(EVP_CIPHER_CTX_free_ptr(EVP_CIPHER_CTX_new(), ::EVP_CIPHER_CTX_free)),
     key(other.key), iv(other.iv), cipher(other.cipher) { }
 
-const void Hash::hash(const BIGNUM* in, BIGNUM* out) const {
+const void Hash::operator()(const BIGNUM* in, BIGNUM* out) const {
   // put data into memory-safe containers (idea from the openssl webpage)
   ptext.resize(BN_num_bytes(in));
   BN_bn2bin(in, &ptext[0]);

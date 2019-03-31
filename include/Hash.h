@@ -12,7 +12,7 @@ public:
   Hash(const Hash& other);
   ~Hash() = default;
 
-  const void hash(const BIGNUM* in, BIGNUM* out) const;
+  const void operator()(const BIGNUM* in, BIGNUM* out) const;
 
   const unsigned int get_key_size() const;
   const unsigned int get_block_size() const;

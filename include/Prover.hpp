@@ -17,7 +17,7 @@ public:
     BN_CTX_free(ctx);
   }
 
-  solution prove (const Verifier<m>& verifier) const;
+  solution operator()(const Verifier<m>& verifier) const;
 
 private:
   BN_CTX* ctx;
@@ -28,7 +28,7 @@ using ProverW = Prover<VDF_version::WESOLOWSKI>;
 
 template<>
 typename ProverP::solution
-ProverP::prove (const Verifier<VDF_version::PIETRZAK>& verifier) const {
+ProverP::operator()(const Verifier<VDF_version::PIETRZAK>& verifier) const {
   BN_CTX_start(ctx);
 
   // constants
@@ -93,7 +93,7 @@ ProverP::prove (const Verifier<VDF_version::PIETRZAK>& verifier) const {
     BN_mod_sqr(mu, mu_prime, N, ctx);
     BN_copy(xymu, xy_help);
     BN_add(xymu, xymu, mu_prime);
-    hash.hash(xymu, r);
+    hash(xymu, r);
     // get the new x
     BN_mod_exp(prod_help, x, r, N, ctx);
     BN_mod_mul(x, prod_help, mu, N, ctx);
@@ -116,7 +116,8 @@ ProverP::prove (const Verifier<VDF_version::PIETRZAK>& verifier) const {
 
 template<>
 typename ProverW::solution
-ProverW::prove (const Verifier<VDF_version::WESOLOWSKI>& verifier) const {  // TODO
+ProverW::operator()(const Verifier<VDF_version::WESOLOWSKI>& verifier) const {  // TODO
+  throw std::runtime_error("nyi");
   BN_CTX_start(ctx);
 
   // constants
@@ -180,7 +181,7 @@ ProverW::prove (const Verifier<VDF_version::WESOLOWSKI>& verifier) const {  // T
     BN_mod_sqr(mu, mu_prime, N, ctx);
     BN_copy(xymu, xy_help);
     BN_add(xymu, xymu, mu_prime);
-    hash.hash(xymu, r);
+    hash(xymu, r);
     // get the new x
     BN_mod_exp(prod_help, x, r, N, ctx);
     BN_mod_mul(x, prod_help, mu, N, ctx);
