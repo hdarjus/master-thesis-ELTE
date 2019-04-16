@@ -1,3 +1,7 @@
+#ifndef _DEBUG
+#define _DEBUG
+#endif
+
 #include "../include/Prover.hpp"
 #include <iostream>
 #include <sstream>

@@ -1,6 +1,3 @@
-#ifndef _HASH_H_
-#define _HASH_H_
-
 #include "../include/Hash.h"
 #include <exception>
 #include <openssl/rand.h>
@@ -105,6 +102,4 @@ const unsigned int Hash::get_key_size() const {
 const unsigned int Hash::get_block_size() const {
   return iv.size();
 }
-
-#endif  // HASH_H_
 

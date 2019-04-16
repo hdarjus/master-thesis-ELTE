@@ -1,3 +1,7 @@
+#ifndef _DEBUG
+#define _DEBUG
+#endif
+
 #include "../include/RSWPuzzle.h"
 #include <random>
 #include <stdexcept>
