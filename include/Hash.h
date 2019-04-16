@@ -31,7 +31,7 @@ private:
   EVP_CIPHER_CTX_free_ptr ctx;
 
   // helpers for memory safety
-  mutable secure_string ctext;
-  mutable secure_string ptext;
+  mutable SecureString ctext;
+  mutable SecureString ptext;
 };
 

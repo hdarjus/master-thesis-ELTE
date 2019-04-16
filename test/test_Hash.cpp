@@ -78,7 +78,7 @@ void aes_encrypt(
     const BIGNUM* pnum,
     BIGNUM* cnum) {
 
-    secure_string ptext, ctext;
+    SecureString ptext, ctext;
     ptext.resize(BN_num_bytes(pnum));
     BN_bn2bin(pnum, &ptext[0]);
 
@@ -119,7 +119,7 @@ void aes_decrypt (
     const BIGNUM* cnum,
     BIGNUM* rnum) {
 
-    secure_string ctext, rtext;
+    SecureString ctext, rtext;
     ctext.resize(BN_num_bytes(cnum));
     BN_bn2bin(cnum, &ctext[0]);
 

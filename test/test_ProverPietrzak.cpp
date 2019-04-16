@@ -2,14 +2,14 @@
 #define _DEBUG
 #endif
 
-#include "../include/Prover.hpp"
+#include "../include/ProverPietrzak.h"
 #include <iostream>
 #include <sstream>
 #include "../include/util.h"
 
 int main(int argc, char* argv[]) {
-  Verifier<VDF_version::PIETRZAK> verifier(20, 64, {97}, 50);
-  Prover<VDF_version::PIETRZAK> prover;
+  VerifierPietrzak verifier(20, 64, {97}, 50);
+  ProverPietrzak prover;
   const auto sol = prover(verifier);
 
   //std::vector<bytevec> pi = sol.first;
@@ -41,8 +41,8 @@ int main(int argc, char* argv[]) {
   }
 
   // Reproducible
-  Verifier<VDF_version::PIETRZAK> verifier2(20, 64, {97}, 50);
-  Prover<VDF_version::PIETRZAK> prover2;
+  VerifierPietrzak verifier2(20, 64, {97}, 50);
+  ProverPietrzak prover2;
   const auto sol2 = prover2(verifier2);
   auto sol3 = sol2;
 
