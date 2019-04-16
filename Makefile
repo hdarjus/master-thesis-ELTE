@@ -1,14 +1,17 @@
 PKG_FOLDER = $(shell pwd -P)
-CC = ccache clang 
-CXX = ccache clang++ 
-CPPFLAGS = -D_DEBUG 
+LOCAL_FOLDER = ${HOME}/.local
+CC = ccache gcc
+CXX = ccache g++ 
+CPPFLAGS = -D_DEBUG -I$(LOCAL_FOLDER)/include -std=c++14 
 CFLAGS = 
 CXXFLAGS = -g -O0 -fPIC -fexceptions 
 TARGET = lib/libvdf.so
 
-OPENSSLLIB = $(shell pkg-config --libs openssl) 
-LDFLAGS = $(OPENSSLLIB)
-TEST_LDFLAGS = -Llib -lvdf $(OPENSSLLIB) -Wl,-rpath,$(PKG_FOLDER)/lib 
+OPENSSL_LDFLAGS = -L$(LOCAL_FOLDER)/lib -lssl -lcrypto -Wl,-rpath=$(LOCAL_FOLDER)/lib 
+PKG_LDFLAGS = -Llib -lvdf -Wl,-rpath=$(PKG_FOLDER)/lib 
+GMP_LDFLAGS = -L$(LOCAL_FOLDER)/lib -lgmpxx -Wl,-rpath=$(LOCAL_FOLDER)/lib 
+LDFLAGS = $(OPENSSL_LDFLAGS) $(GMP_LDFLAGS) 
+TEST_LDFLAGS = $(PKG_LDFLAGS) $(LDFLAGS) 
 
 src = $(wildcard src/*.cpp)
 objtmp = $(subst src/,obj/,$(src))
@@ -30,7 +33,7 @@ obj/%.o: src/%.cpp
 test: $(testbin) $(testdep)
 
 test/%.d: test/%.cpp
-	$(CXX) $(CXXLAGS) $< -MM -MT $(@:.d=.o) >$@
+	$(CXX) $(CPPFLAGS) $(CXXLAGS) $< -MM -MT $(@:.d=.o) >$@
 
 -include $(testdep)
 

@@ -87,7 +87,8 @@ const void Hash::operator()(const BIGNUM* in, BIGNUM* out) const {
   if (error != 1)
     throw std::runtime_error("EVP_EncryptUpdate failed");
   int out_len2 = (int)ctext.size() - out_len1;
-  error = EVP_EncryptFinal(ctx.get(), &ctext[0]+out_len1, &out_len2);  // ctx gets cleaned up
+  error = EVP_EncryptFinal(ctx.get(), &ctext[0]+out_len1, &out_len2);  // does not clean up ctx
+  EVP_CIPHER_CTX_reset(ctx.get());
   if (error != 1)
     throw std::runtime_error("EVP_EncryptFinal_ex failed");
   ctext.resize(out_len1 + out_len2);

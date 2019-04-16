@@ -10,7 +10,7 @@ public:
   using solution = typename Verifier<m>::solution;
 
   Prover() {
-    ctx = BN_CTX_new();
+    ctx = BN_CTX_secure_new();
   }
 
   ~Prover() {
@@ -78,7 +78,9 @@ ProverP::operator()(const Verifier<VDF_version::PIETRZAK>& verifier) const {
   BN_add(xy_help, xy_help, y);
   BN_lshift(xy_help, xy_help, BN_num_bits(N));
   
+#ifdef _DEBUG
   char* tmp;
+#endif
   // calculate _mu_prime
   for (int i = 1; i <= t; i++) {
     Ti /= 2L;
@@ -97,18 +99,24 @@ ProverP::operator()(const Verifier<VDF_version::PIETRZAK>& verifier) const {
     // get the new x
     BN_mod_exp(prod_help, x, r, N, ctx);
     BN_mod_mul(x, prod_help, mu, N, ctx);
+#ifdef _DEBUG
     tmp = BN_bn2dec(x);
     std::cout << i << ":\t" << tmp << std::endl;
     OPENSSL_free(tmp);
+#endif
     // get the new y
     BN_mod_exp(prod_help, mu, r, N, ctx);
     BN_mod_mul(y, prod_help, y, N, ctx);
+#ifdef _DEBUG
     tmp = BN_bn2dec(y);
     std::cout << i << ":\t" << tmp << std::endl << std::endl;
     OPENSSL_free(tmp);
+#endif
   }
   
+#ifdef _DEBUG
   std::cout << std::endl << "-----------------------------------------------------------" << std::endl;
+#endif
 
   BN_CTX_end(ctx);
   return std::make_pair(_mu_prime, _y);

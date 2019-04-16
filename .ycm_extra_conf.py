@@ -1,6 +1,6 @@
 def FlagsForFile (filename, **kwargs):
     return {
-            'flags': ['-x', 'c++', '-std=c++17',
+            'flags': ['-x', 'c++', '-std=c++14',
                 '-I', '/home/dhosszejni/.local/include',
                 '-D', '_DEBUG',
                 #'-Wpedantic', '-Wall', '-Wextra', '-Wconversion',

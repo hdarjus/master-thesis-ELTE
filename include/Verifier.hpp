@@ -28,7 +28,7 @@ public:
       const unsigned int _block_size = 128/Hash::divisor) :
         hash(_lambda, _key_size, _block_size),
         puzzle(_lambda, _T, _x, _lambdaRSW) {
-    ctx = BN_CTX_new();
+    ctx = BN_CTX_secure_new();
   }
 
   ~Verifier() {
@@ -75,7 +75,9 @@ public:
     BN_bin2bn(_y.data(), (int)_y.size(), y);
     BN_zero(zero);
 
+#ifdef _DEBUG
       std::cout << "N:\t" << print_bn(N) << std::endl;
+#endif
 
     // calculate xy_help that helps the hashing step
     BN_copy(xy_help, x);
@@ -88,33 +90,49 @@ public:
         std::cout << i << std::endl;
       Ti /= 2L;
       BN_bin2bn(_pi[i-1].data(), (int)_pi[i-1].size(), mu_prime);
+#ifdef _DEBUG
         std::cout << "mu':\t" << print_bn_hex(mu_prime) << std::endl;
+#endif
       if (BN_cmp(mu_prime, N) >= 0 || BN_cmp(mu_prime, zero) != 1) {  // 0 < mu_prime < N?
         return false;
       }
       BN_mod_sqr(mu, mu_prime, N, ctx);
+#ifdef _DEBUG
         std::cout << "mu:\t" << print_bn_hex(mu) << std::endl;
+#endif
       BN_copy(xymu, xy_help);
       BN_add(xymu, xymu, mu_prime);
+#ifdef _DEBUG
         std::cout << "xymu:\t" << print_bn_hex(xymu) << std::endl;
+#endif
       hash(xymu, r);
+#ifdef _DEBUG
         std::cout << "r:\t" << print_bn(r) << std::endl;
+#endif
       // get the new x
       BN_mod_exp(prod_help, x, r, N, ctx);
       BN_mod_mul(x, prod_help, mu, N, ctx);
+#ifdef _DEBUG
         std::cout << "x:\t" << print_bn(x) << std::endl;
+#endif
       // get the new y
       BN_mod_exp(prod_help, mu, r, N, ctx);
       BN_mod_mul(y, prod_help, y, N, ctx);
+#ifdef _DEBUG
         std::cout << "y:\t" << print_bn(y) << std::endl;
         std::cout << "----------------" << std::endl << std::endl;
+#endif
     }
 
+#ifdef _DEBUG
     std::cout << std::endl << "-----------------------------------------------------------------" << std::endl;
+#endif
 
     BN_mod_sqr(x, x, N, ctx);
+#ifdef _DEBUG
       std::cout << "x:\t" << print_bn(x) << std::endl;
       std::cout << "y:\t" << print_bn(y) << std::endl;
+#endif
     bool result = BN_cmp(y, x) == 0;
     BN_CTX_end(ctx);
     return result;
