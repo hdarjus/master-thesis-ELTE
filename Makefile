@@ -9,8 +9,9 @@ TARGET = lib/libvdf.so
 
 OPENSSL_LDFLAGS = -L$(LOCAL_FOLDER)/lib -lssl -lcrypto -Wl,-rpath=$(LOCAL_FOLDER)/lib 
 PKG_LDFLAGS = -Llib -lvdf -Wl,-rpath=$(PKG_FOLDER)/lib 
-GMP_LDFLAGS = -L$(LOCAL_FOLDER)/lib -lgmpxx -Wl,-rpath=$(LOCAL_FOLDER)/lib 
-LDFLAGS = $(OPENSSL_LDFLAGS) $(GMP_LDFLAGS) 
+GMP_LDFLAGS = -L$(LOCAL_FOLDER)/lib -lgmpxx -lgmp -Wl,-rpath=$(LOCAL_FOLDER)/lib 
+MPFR_LDFLAGS = -L$(LOCAL_FOLDER)/lib -lmpfr -Wl,-rpath=$(LOCAL_FOLDER)/lib 
+LDFLAGS = $(OPENSSL_LDFLAGS) $(GMP_LDFLAGS) $(MPFR_LDFLAGS) 
 TEST_LDFLAGS = $(PKG_LDFLAGS) $(LDFLAGS) 
 
 src = $(wildcard src/*.cpp)
