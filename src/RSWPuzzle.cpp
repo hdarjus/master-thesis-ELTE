@@ -1,4 +1,5 @@
 #include "../include/RSWPuzzle.h"
+#include "../include/util.h"
 
 RSWPuzzle::RSWPuzzle(
     const unsigned long _lambda,
@@ -61,12 +62,6 @@ RSWPuzzle::RSWPuzzle(const RSWPuzzle& other) :
 RSWPuzzle::~RSWPuzzle() {
   BN_clear_free(x);
   BN_clear_free(N);
-}
-
-bytevec bn2bytevec(const BIGNUM* in) {
-  bytevec vec(BN_num_bytes(in));
-  BN_bn2bin(in, &vec[0]);
-  return vec;
 }
 
 bytevec RSWPuzzle::get_N() const {

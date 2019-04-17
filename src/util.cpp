@@ -1,6 +1,17 @@
 #include "../include/util.h"
 #include <sstream>
 
+bytevec bn2bytevec(const BIGNUM* in) {
+  bytevec vec(BN_num_bytes(in));
+  BN_bn2bin(in, &vec[0]);
+  return vec;
+}
+
+void bn2bytevec(const BIGNUM* in, bytevec& out) {
+  out.resize(BN_num_bytes(in));
+  BN_bn2bin(in, &out[0]);
+}
+
 std::string print_bytevec (const bytevec& b) {
   std::ostringstream result;
   char* str;
