@@ -4,5 +4,6 @@ def FlagsForFile (filename, **kwargs):
                 '-I', '/home/dhosszejni/.local/include',
                 '-D', '_DEBUG',
                 #'-Wpedantic', '-Wall', '-Wextra', '-Wconversion',
+                '-Wshadow',
                 '-g', '-c', '-O0'],
             }

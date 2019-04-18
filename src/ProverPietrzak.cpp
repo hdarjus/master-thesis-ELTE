@@ -14,30 +14,32 @@ ProverPietrzak::operator()(const VerifierPietrzak& verifier, long _d_max) const 
   const auto puzzle = verifier.get_RSWPuzzle();
   const auto hash = verifier.get_Hash();
   const unsigned long lambda = puzzle.get_lambda();
-  const unsigned long T = puzzle.get_T();
+  const unsigned long t = puzzle.get_log2T();
+  const bytevec _T = puzzle.get_T();
   const bytevec _N = puzzle.get_N();
   const bytevec _x = puzzle.get_x();
 
   // helper variables
-  unsigned long Ti;  // denotes T_{i+1} from the paper
-  unsigned long t = std::bitset<CHAR_BIT*sizeof(decltype(T))>(T-1).count();
-  if (T != 1 << t) {
-    throw std::runtime_error("T is not a two-power");
-  }
   const unsigned long d_max = (_d_max >= 0) ? (unsigned long)_d_max : t/2;
-  if (d_max > T) {
+  if (d_max > t) {
     throw std::runtime_error("d_max is too large");
   }
   BIGNUM* mu = BN_CTX_get(ctx);
   BIGNUM* mu_prime = BN_CTX_get(ctx);
   BIGNUM* N = BN_CTX_get(ctx);
+  BIGNUM* T = BN_CTX_get(ctx);
+  BIGNUM* Tip1 = BN_CTX_get(ctx);  // denotes T_{i+1} from the paper
   BIGNUM* x = BN_CTX_get(ctx);
   BIGNUM* r = BN_CTX_get(ctx);
   BIGNUM* y = BN_CTX_get(ctx);
+  BIGNUM* tt = BN_CTX_get(ctx);
   BIGNUM* xy_help = BN_CTX_get(ctx);
   BIGNUM* xymu = BN_CTX_get(ctx);
   BIGNUM* prod_help = BN_CTX_get(ctx);
   BIGNUM* prod_help2 = BN_CTX_get(ctx);
+  BIGNUM* two_to_d = BN_CTX_get(ctx);
+  BIGNUM* q = BN_CTX_get(ctx);
+  BIGNUM* rem = BN_CTX_get(ctx);
   std::vector<std::vector<BIGNUM*> > cache(d_max);
   std::vector<BIGNUM*> r_cache(d_max);
   for (int i = 1; i <= d_max; i++) {
@@ -49,9 +51,10 @@ ProverPietrzak::operator()(const VerifierPietrzak& verifier, long _d_max) const 
   }
 
   // set initial values
-  Ti = T;
   BN_bin2bn(_x.data(), (int)_x.size(), x);
   BN_bin2bn(_N.data(), (int)_N.size(), N);
+  BN_bin2bn(_T.data(), (int)_T.size(), T);
+  BN_copy(Tip1, T);
   BN_copy(y, x);
 
   // declare returned values
@@ -59,34 +62,20 @@ ProverPietrzak::operator()(const VerifierPietrzak& verifier, long _d_max) const 
   std::vector<bytevec> _mu_prime(t);
 
   // calculate _y and save partial results
-  for (unsigned long tt = 1; tt <= T; tt++) {
+  for (BN_one(tt); BN_cmp(tt, T) <= 0;  BN_add(tt, tt, BN_value_one())) {
     BN_mod_sqr(y, y, N, ctx);
     bool saved = false;
     for (unsigned long d_ind = 0; d_ind < d_max && !saved; d_ind++) {
-      const unsigned long two_to_d = 1ul << (t-d_ind-1);
-      if (tt % two_to_d == 0 && tt < T) {
-        BN_copy(cache[d_ind][((tt/two_to_d)-1)/2], y);
+      BN_one(two_to_d);
+      BN_lshift(two_to_d, two_to_d, t-d_ind-1);
+      BN_div(q, rem, tt, two_to_d, ctx);
+      if (BN_is_zero(rem) && BN_cmp(tt, T) < 0) {
+        const auto q_word = BN_get_word(q);
+        BN_copy(cache[d_ind][(q_word-1)/2], y);
         saved = true;
-#ifdef _DEBUG
-        std::cout << "Saving " << tt << " to (" << d_ind << ',' << ((tt/two_to_d)-1)/2 << "): " << print_bn(y) << std::endl;
-#endif
       }
     }
   }
-  //for (unsigned long d_current = 0; d_current < t; d_current++) {
-  //  unsigned long two_to_d_current = 1ul << d_current;
-  //  unsigned long two_to_d_next = 1ul << (d_current+1ul);
-  //  unsigned long k = 0;
-  //  for (unsigned long tt = two_to_d_current; tt < two_to_d_next; tt++) {
-  //    BN_mod_sqr(y, y, N, ctx);
-  //    if (t-d_current <= d_max &&
-  //        tt == (2*k+1)*two_to_d_current) {
-  //      BN_copy(cache[t-d_current-1][k], y);
-  //      k++;
-  //    }
-  //  }
-  //}
-  //BN_mod_sqr(y, y, N, ctx);  // plus one squaring
   _y.resize(BN_num_bytes(y));
   BN_bn2bin(y, &_y[0]);
 
@@ -98,52 +87,27 @@ ProverPietrzak::operator()(const VerifierPietrzak& verifier, long _d_max) const 
   
   // calculate _mu_prime
   for (unsigned long i = 1; i <= t; i++) {
-    Ti /= 2L;
+    BN_rshift1(Tip1, Tip1);
     if (i > d_max) {  // we have to do sequential squarings
       BN_copy(mu_prime, x);
-      for (unsigned long tt = 1L; tt <= Ti; tt++) {
+      for (BN_one(tt); BN_cmp(tt, Tip1) <= 0; BN_add(tt, tt, BN_value_one())) {
         BN_mod_sqr(mu_prime, mu_prime, N, ctx);
       }
     } else {  // we use the cache
-      BN_dec2bn(&prod_help2, "1");
+      BN_one(prod_help2);
       unsigned long k;
       const int bits_size = CHAR_BIT*sizeof(decltype(k));
       std::bitset<bits_size> k_bits;
-#ifdef _DEBUG
-        std::cout << "Using at i = " << i << ' ';
-#endif
       for (k = 0; k < cache[i-1].size(); k++) {
         k_bits = cache[i-1].size()-1-k;
-#ifdef _DEBUG
-        //std::cout << k_bits << std::endl;
-        //for (int b = 0; b < k_bits.size(); b++) {
-        //  std::cout << b << ':' << k_bits.test(b) << ',';
-        //}
-        //std::cout << std::endl;
-#endif
-        BN_dec2bn(&prod_help, "1");
-#ifdef _DEBUG
-        std::cout << '(' << k << ";";
-#endif
+        BN_one(prod_help);
         for (unsigned long b = 0; b < i-1; b++) {
           if (k_bits.test(i-2-b)) {
             BN_mul(prod_help, prod_help, r_cache[b], ctx);
-#ifdef _DEBUG
-        std::cout << b+1 << " [" << print_bn(prod_help) << "], ";
-#endif
           }
         }
-#ifdef _DEBUG
-        std::cout << ')' << std::endl;
-#endif
         BN_mod_exp(prod_help, cache[i-1][k], prod_help, N, ctx);
-#ifdef _DEBUG
-        std::cout << " prod_help: " << print_bn(prod_help) << std::endl;
-#endif
         BN_mod_mul(prod_help2, prod_help2, prod_help, N, ctx);
-#ifdef _DEBUG
-        std::cout << " prod_help2: " << print_bn(prod_help2) << std::endl;
-#endif
       }
       BN_copy(mu_prime, prod_help2);
     }

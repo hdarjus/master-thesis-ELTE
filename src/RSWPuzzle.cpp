@@ -3,20 +3,23 @@
 
 RSWPuzzle::RSWPuzzle(
     const unsigned long _lambda,
-    const unsigned long _T,
+    const unsigned long _t,
     const bytevec& _x) :
-      lambda(_lambda), T(_T) {
+      lambda(_lambda), t(_t) {
   x = BN_secure_new();
+  T = BN_secure_new();
 
   BN_bin2bn(_x.data(), _x.size(), x);
+  BN_dec2bn(&T, "1");
+  BN_lshift(T, T, t);
 }
 
 RSWPuzzle::RSWPuzzle(
     const unsigned long _lambda,
-    const unsigned long _T,
+    const unsigned long _t,
     const bytevec& _x,
     const bytevec& _N) :
-      RSWPuzzle(_lambda, _T, _x) {
+      RSWPuzzle(_lambda, _t, _x) {
   N = BN_secure_new();
   BN_bin2bn(_N.data(), _N.size(), N);
 
@@ -29,10 +32,10 @@ RSWPuzzle::RSWPuzzle(
 
 RSWPuzzle::RSWPuzzle(
     const unsigned long _lambda,
-    const unsigned long _T,
+    const unsigned long _t,
     const bytevec& _x,
     const unsigned long _lambdaRSW) :
-      RSWPuzzle(_lambda, _T, _x) {
+      RSWPuzzle(_lambda, _t, _x) {
   N = BN_secure_new();
 
   BN_CTX* ctx = BN_CTX_secure_new();
@@ -52,14 +55,17 @@ RSWPuzzle::RSWPuzzle(
 }
 
 RSWPuzzle::RSWPuzzle(const RSWPuzzle& other) :
-    T(other.T), lambda(other.lambda) {
+    t(other.t), lambda(other.lambda) {
   N = BN_secure_new();
   x = BN_secure_new();
+  T = BN_secure_new();
   BN_copy(N, other.N);
   BN_copy(x, other.x);
+  BN_copy(T, other.T);
 }
 
 RSWPuzzle::~RSWPuzzle() {
+  BN_clear_free(T);
   BN_clear_free(x);
   BN_clear_free(N);
 }
@@ -72,8 +78,12 @@ bytevec RSWPuzzle::get_x() const {
   return bn2bytevec(x);
 }
 
-unsigned long RSWPuzzle::get_T() const {
-  return T;
+bytevec RSWPuzzle::get_T() const {
+  return bn2bytevec(T);
+}
+
+unsigned long RSWPuzzle::get_log2T() const {
+  return t;
 }
 
 unsigned long RSWPuzzle::get_lambda() const {

@@ -14,14 +14,14 @@ public:
 
   VerifierPietrzak(
       const unsigned long _lambda,
-      const unsigned long _T,
+      const unsigned long _t,
       const bytevec& _x,
       const unsigned long _lambdaRSW,
       const unsigned int _key_size = 256/Hash::divisor,
       const unsigned int _block_size = 128/Hash::divisor);
   VerifierPietrzak(
       const unsigned long _lambda,
-      const unsigned long _T,
+      const unsigned long _t,
       const bytevec& _x,
       const bytevec& N,
       const unsigned int _key_size = 256/Hash::divisor,
