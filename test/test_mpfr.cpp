@@ -7,6 +7,7 @@ extern "C" {
 #include <mpfr.h>
 }
 #include <iostream>
+#include <cmath>
 
 static const unsigned int real_precision = 1028;
 

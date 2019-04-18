@@ -1,8 +1,8 @@
 PKG_FOLDER = $(shell pwd -P)
 LOCAL_FOLDER = ${HOME}/.local
-CC = ccache gcc
-CXX = ccache g++ 
-CPPFLAGS = -D_DEBUG -I$(LOCAL_FOLDER)/include -std=c++14 
+CC = ccache gcc-8 
+CXX = ccache g++-8 
+CPPFLAGS = -D_DEBUG -I$(LOCAL_FOLDER)/include -std=c++17 
 CFLAGS = 
 CXXFLAGS = -g -O0 -fPIC -fexceptions 
 TARGET = lib/libvdf.so

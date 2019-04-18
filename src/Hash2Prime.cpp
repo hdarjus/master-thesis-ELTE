@@ -4,6 +4,7 @@ extern "C" {
 }
 #include "../include/Hash2Prime.h"
 #include "../include/util.h"
+#include <algorithm>
 
 
 using namespace std;
@@ -67,7 +68,7 @@ void Hash2Prime::expmLambertWm1(const int& lambda) {
   mpfr_div(tmp, L2, L1, rounding);  // w = L1-L2+L2/L1;
   mpfr_sub(tmp, tmp, L2, rounding);
   mpfr_add(w, tmp, L1, rounding);
-  mpfr_set_si_2exp(eps, 1, -fmin(200, precision/10.0), rounding);
+  mpfr_set_si_2exp(eps, 1, -std::min(200l, precision/3l), rounding);
 
   bool found = false;
   for (int i = 0; i < maxiter && !found; i++) {
