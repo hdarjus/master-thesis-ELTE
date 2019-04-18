@@ -114,17 +114,17 @@ int main(int argc, char* argv[]) {
   auto sol51 = sol5;
 
   if (verifier5(sol5)) {
-    std::cout << "7. Good: Verified ****************************************************************************" << std::endl;
+    std::cout << "9. Good: Verified ****************************************************************************" << std::endl;
   } else {
-    std::cout << "7. Oh no: Falsified ****************************************************************************" << std::endl;
+    std::cout << "9. Oh no: Falsified ****************************************************************************" << std::endl;
   }
 
   sol51.first[3][1]++;  // ruin the proof
 
   if (verifier5(sol51)) {
-    std::cout << "8. Oh no: Verified" << std::endl;
+    std::cout << "10. Oh no: Verified" << std::endl;
   } else {
-    std::cout << "8. Good: Falsified" << std::endl;
+    std::cout << "10. Good: Falsified" << std::endl;
   } /* END TEST 4 */
 
   return 0;
