@@ -4,6 +4,17 @@ VerifierPietrzak::VerifierPietrzak(
     const unsigned long _lambda,
     const unsigned long _T,
     const bytevec& _x,
+    const bytevec& N,
+    const unsigned int _key_size,
+    const unsigned int _block_size) :
+      hash(_lambda, _key_size, _block_size),
+      puzzle(_lambda, _T, _x, N),
+      ctx_ptr(BN_CTX_free_ptr(BN_CTX_secure_new(), ::BN_CTX_free)) { }
+
+VerifierPietrzak::VerifierPietrzak(
+    const unsigned long _lambda,
+    const unsigned long _T,
+    const bytevec& _x,
     const unsigned long _lambdaRSW,
     const unsigned int _key_size,
     const unsigned int _block_size) :
@@ -71,9 +82,11 @@ bool VerifierPietrzak::operator()(const solution& sol) const {
       std::cout << "mu':\t" << print_bn_hex(mu_prime) << std::endl;
 #endif
     if (BN_cmp(mu_prime, N) >= 0 || BN_cmp(mu_prime, zero) != 1) {  // 0 < mu_prime < N?
+      BN_CTX_end(ctx);
       return false;
     }
-    BN_mod_sqr(mu, mu_prime, N, ctx);
+    //BN_mod_sqr(mu, mu_prime, N, ctx);
+    BN_copy(mu, mu_prime);
 #ifdef _DEBUG
       std::cout << "mu:\t" << print_bn_hex(mu) << std::endl;
 #endif
@@ -102,7 +115,7 @@ bool VerifierPietrzak::operator()(const solution& sol) const {
   }
 
 #ifdef _DEBUG
-  std::cout << std::endl << "-----------------------------------------------------------------" << std::endl;
+  std::cout << std::endl << "-----------------------------------------------------------------" << std::endl << std::endl;
 #endif
 
   BN_mod_sqr(x, x, N, ctx);

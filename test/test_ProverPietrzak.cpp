@@ -8,9 +8,15 @@
 #include "../include/util.h"
 
 int main(int argc, char* argv[]) {
-  VerifierPietrzak verifier(20, 64, {97}, 50);
+  BIGNUM* N_bn = BN_secure_new();
+  BN_dec2bn(&N_bn, "799979478482341");
+  bytevec N = bn2bytevec(N_bn);
+
+
+  /*  TEST 1  * /
+  VerifierPietrzak verifier(20, 64, {97}, N);
   ProverPietrzak prover;
-  const auto sol = prover(verifier);
+  const auto sol = prover(verifier, 1);
 
   //std::vector<bytevec> pi = sol.first;
   //std::cout << print_bytevec(sol.second) << std::endl << std::endl;
@@ -21,9 +27,9 @@ int main(int argc, char* argv[]) {
   std::cout << "--------------" << std::endl;
 
   if (verifier(sol)) {
-    std::cout << "Good: Verified" << std::endl;
+    std::cout << "1. Good: Verified ****************************************************************************" << std::endl << std::endl << std::endl;
   } else {
-    std::cout << "Oh no: Falsified" << std::endl;
+    std::cout << "1. Oh no: Falsified ****************************************************************************" << std::endl << std::endl << std::endl;
   }
 
   //pi = sol.first;  // sol does not change
@@ -35,30 +41,71 @@ int main(int argc, char* argv[]) {
   std::cout << "--------------" << std::endl;
 
   if (verifier(sol)) {
-    std::cout << "Good: Verified" << std::endl;
+    std::cout << "2. Good: Verified ****************************************************************************" << std::endl << std::endl << std::endl;
   } else {
-    std::cout << "Oh no: Falsified" << std::endl;
-  }
+    std::cout << "2. Oh no: Falsified ****************************************************************************" << std::endl << std::endl << std::endl;
+  } / * END TEST 1 */
 
-  // Reproducible
-  VerifierPietrzak verifier2(20, 64, {97}, 50);
+
+  /*  TEST 2  reproducibility * /
+  VerifierPietrzak verifier2(20, 64, {97}, N);
   ProverPietrzak prover2;
-  const auto sol2 = prover2(verifier2);
-  auto sol3 = sol2;
+  const auto sol2 = prover2(verifier2, 1);
+  auto sol21 = sol2;
 
   if (verifier2(sol2)) {
-    std::cout << "Good: Verified" << std::endl;
+    std::cout << "3. Good: Verified ****************************************************************************" << std::endl;
   } else {
-    std::cout << "Oh no: Falsified" << std::endl;
+    std::cout << "3. Oh no: Falsified ****************************************************************************" << std::endl;
   }
 
-  sol3.first[2][1]++;  // ruin the proof
+  sol21.first[2][1]++;  // ruin the proof
 
-  if (verifier(sol3)) {
-    std::cout << "Oh no: Verified" << std::endl;
+  if (verifier2(sol21)) {
+    std::cout << "4. Oh no: Verified" << std::endl;
   } else {
-    std::cout << "Good: Falsified" << std::endl;
+    std::cout << "4. Good: Falsified" << std::endl;
+  } / * END TEST 2 */
+
+  /*  TEST 3  different d_max */
+  VerifierPietrzak verifier3(20, 64, {77, 39, 11}, N);
+  ProverPietrzak prover3;
+  const auto sol3 = prover3(verifier3, 3);
+  auto sol31 = sol3;
+
+  if (verifier3(sol3)) {
+    std::cout << "5. Good: Verified ****************************************************************************" << std::endl;
+  } else {
+    std::cout << "5. Oh no: Falsified ****************************************************************************" << std::endl;
   }
+/*
+  sol31.first[0][0]++;  // ruin the proof
+
+  if (verifier3(sol31)) {
+    std::cout << "6. Oh no: Verified" << std::endl;
+  } else {
+    std::cout << "6. Good: Falsified" << std::endl;
+  }*/ /* END TEST 3 */
+
+  /*  TEST 4  with lambda_RSA * /
+  VerifierPietrzak verifier4(20, 64, {97}, 50);
+  ProverPietrzak prover4;
+  const auto sol4 = prover4(verifier4, 3);
+  auto sol41 = sol4;
+
+  if (verifier4(sol4)) {
+    std::cout << "7. Good: Verified ****************************************************************************" << std::endl;
+  } else {
+    std::cout << "7. Oh no: Falsified ****************************************************************************" << std::endl;
+  }
+
+  sol41.first[0][0]++;  // ruin the proof
+
+  if (verifier4(sol41)) {
+    std::cout << "8. Oh no: Verified" << std::endl;
+  } else {
+    std::cout << "8. Good: Falsified" << std::endl;
+  } / * END TEST 4 */
 
   return 0;
 }
