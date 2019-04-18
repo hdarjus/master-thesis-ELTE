@@ -16,7 +16,7 @@ Hash2Prime::Hash2Prime(const int& lambda) :
   mpz_cdiv_q(max_int.get_mpz_t(), max_int.get_mpz_t(), (6_mpz).get_mpz_t());
 }
 
-const void Hash2Prime::operator()(const BIGNUM* in, BIGNUM* out) {
+void Hash2Prime::operator()(const BIGNUM* in, BIGNUM* out) {
   const int max_iter = 10000;
   const int max_miller_rabin = 30;
 

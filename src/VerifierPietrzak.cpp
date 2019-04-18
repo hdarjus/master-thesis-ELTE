@@ -35,7 +35,6 @@ bool VerifierPietrzak::operator()(const solution& sol) const {
   BN_CTX_start(ctx);
 
   // constants
-  const unsigned long lambda = puzzle.get_lambda();
   const unsigned long t = puzzle.get_log2T();
   const bytevec _T = puzzle.get_T();
   const bytevec _N = puzzle.get_N();
@@ -45,7 +44,6 @@ bool VerifierPietrzak::operator()(const solution& sol) const {
 
   // helper variables
   BIGNUM* mu = BN_CTX_get(ctx);
-  BIGNUM* mu_prime = BN_CTX_get(ctx);
   BIGNUM* N = BN_CTX_get(ctx);
   BIGNUM* r = BN_CTX_get(ctx);
   BIGNUM* x = BN_CTX_get(ctx);
@@ -74,21 +72,16 @@ bool VerifierPietrzak::operator()(const solution& sol) const {
   // validation
   for (int i = 1; i <= _pi.size(); i++) {
       std::cout << i << std::endl;
-    BN_bin2bn(_pi[i-1].data(), (int)_pi[i-1].size(), mu_prime);
-#ifdef _DEBUG
-      std::cout << "mu':\t" << print_bn_hex(mu_prime) << std::endl;
-#endif
-    if (BN_cmp(mu_prime, N) >= 0 || BN_cmp(mu_prime, zero) != 1) {  // 0 < mu_prime < N?
+    BN_bin2bn(_pi[i-1].data(), (int)_pi[i-1].size(), mu);
+    if (BN_cmp(mu, N) >= 0 || BN_cmp(mu, zero) != 1) {  // 0 < mu < N?
       BN_CTX_end(ctx);
       return false;
     }
-    //BN_mod_sqr(mu, mu_prime, N, ctx);
-    BN_copy(mu, mu_prime);
 #ifdef _DEBUG
       std::cout << "mu:\t" << print_bn_hex(mu) << std::endl;
 #endif
     BN_copy(xymu, xy_help);
-    BN_add(xymu, xymu, mu_prime);
+    BN_add(xymu, xymu, mu);
 #ifdef _DEBUG
       std::cout << "xymu:\t" << print_bn_hex(xymu) << std::endl;
 #endif

@@ -25,7 +25,6 @@ ProverPietrzak::operator()(const VerifierPietrzak& verifier, long _d_max) const 
     throw std::runtime_error("d_max is too large");
   }
   BIGNUM* mu = BN_CTX_get(ctx);
-  BIGNUM* mu_prime = BN_CTX_get(ctx);
   BIGNUM* N = BN_CTX_get(ctx);
   BIGNUM* T = BN_CTX_get(ctx);
   BIGNUM* Tip1 = BN_CTX_get(ctx);  // denotes T_{i+1} from the paper
@@ -55,13 +54,13 @@ ProverPietrzak::operator()(const VerifierPietrzak& verifier, long _d_max) const 
   BN_bin2bn(_N.data(), (int)_N.size(), N);
   BN_bin2bn(_T.data(), (int)_T.size(), T);
   BN_copy(Tip1, T);
-  BN_copy(y, x);
 
   // declare returned values
   bytevec _y;
-  std::vector<bytevec> _mu_prime(t);
+  std::vector<bytevec> _mu(t);
 
   // calculate _y and save partial results
+  BN_copy(y, x);
   for (BN_one(tt); BN_cmp(tt, T) <= 0;  BN_add(tt, tt, BN_value_one())) {
     BN_mod_sqr(y, y, N, ctx);
     bool saved = false;
@@ -76,8 +75,7 @@ ProverPietrzak::operator()(const VerifierPietrzak& verifier, long _d_max) const 
       }
     }
   }
-  _y.resize(BN_num_bytes(y));
-  BN_bn2bin(y, &_y[0]);
+  bn2bytevec(y, _y);
 
   // calculate xy_help that helps the hashing step
   BN_copy(xy_help, x);
@@ -85,13 +83,13 @@ ProverPietrzak::operator()(const VerifierPietrzak& verifier, long _d_max) const 
   BN_add(xy_help, xy_help, y);
   BN_lshift(xy_help, xy_help, BN_num_bits(N));
   
-  // calculate _mu_prime
+  // calculate _mu
   for (unsigned long i = 1; i <= t; i++) {
     BN_rshift1(Tip1, Tip1);
     if (i > d_max) {  // we have to do sequential squarings
-      BN_copy(mu_prime, x);
+      BN_copy(mu, x);
       for (BN_one(tt); BN_cmp(tt, Tip1) <= 0; BN_add(tt, tt, BN_value_one())) {
-        BN_mod_sqr(mu_prime, mu_prime, N, ctx);
+        BN_mod_sqr(mu, mu, N, ctx);
       }
     } else {  // we use the cache
       BN_one(prod_help2);
@@ -109,17 +107,14 @@ ProverPietrzak::operator()(const VerifierPietrzak& verifier, long _d_max) const 
         BN_mod_exp(prod_help, cache[i-1][k], prod_help, N, ctx);
         BN_mod_mul(prod_help2, prod_help2, prod_help, N, ctx);
       }
-      BN_copy(mu_prime, prod_help2);
+      BN_copy(mu, prod_help2);
     }
-    _mu_prime[i-1].resize(BN_num_bytes(mu_prime));
-    BN_bn2bin(mu_prime, &(_mu_prime[i-1][0]));
-    //BN_mod_sqr(mu, mu_prime, N, ctx);
-    BN_copy(mu, mu_prime);
+    bn2bytevec(mu, _mu[i-1]);
 #ifdef _DEBUG
       std::cout << "mu:\t" << print_bn_hex(mu) << std::endl;
 #endif
     BN_copy(xymu, xy_help);
-    BN_add(xymu, xymu, mu_prime);
+    BN_add(xymu, xymu, mu);
 #ifdef _DEBUG
       std::cout << "xymu:\t" << print_bn_hex(xymu) << std::endl;
 #endif
@@ -150,5 +145,5 @@ ProverPietrzak::operator()(const VerifierPietrzak& verifier, long _d_max) const 
 #endif
 
   BN_CTX_end(ctx);
-  return std::make_pair(_mu_prime, _y);
+  return std::make_pair(_mu, _y);
 }

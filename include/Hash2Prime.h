@@ -12,7 +12,7 @@ public:
   Hash2Prime(const int& lambda);
   ~Hash2Prime() = default;
 
-  const void operator()(const BIGNUM* in, BIGNUM* out);
+  void operator()(const BIGNUM* in, BIGNUM* out);
 private:
   void expmLambertWm1(const int& lambda);
 

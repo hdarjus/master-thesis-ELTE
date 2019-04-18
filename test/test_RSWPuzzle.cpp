@@ -6,6 +6,7 @@
 #include <random>
 #include <stdexcept>
 #include <iostream>
+#include <openssl/bn.h>
 
 using namespace std;
 
@@ -33,12 +34,12 @@ int main(int argc, char* argv[]) {
     cout << (int)i << ' ';
   cout << endl;
 
-  const unsigned long T = 101;
+  const unsigned long t = 101;
   const unsigned long lambda = 6;
   const unsigned long lambdaRSW = 14;
 
-  RSWPuzzle rsw1(lambda, T, x, N);
-  RSWPuzzle rsw2(lambda, T, x, lambdaRSW);
+  RSWPuzzle rsw1(lambda, t, x, N);
+  RSWPuzzle rsw2(lambda, t, x, lambdaRSW);
   cout << "N2: ";
   for (const auto& i : rsw2.get_N())
     cout << (int)i << ' ';
@@ -46,7 +47,7 @@ int main(int argc, char* argv[]) {
 
   if (rsw1.get_lambda() != lambda)
     throw runtime_error("lambda error");
-  if (rsw1.get_T() != T)
+  if (rsw1.get_log2T() != t)
     throw runtime_error("T error");
   if (rsw1.get_x() != x)
     throw runtime_error("x error");
@@ -55,7 +56,7 @@ int main(int argc, char* argv[]) {
 
   if (rsw2.get_lambda() != lambda)
     throw runtime_error("lambda error");
-  if (rsw2.get_T() != T)
+  if (rsw2.get_log2T() != t)
     throw runtime_error("T error");
   //if (rsw2.get_x() != x)
   //  throw runtime_error("x error");
