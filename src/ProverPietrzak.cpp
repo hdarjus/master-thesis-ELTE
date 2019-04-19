@@ -1,5 +1,6 @@
 #include "../include/ProverPietrzak.h"
 #include "../include/util.h"
+#include <openssl/err.h>
 #include <bitset>
 
 ProverPietrzak::ProverPietrzak() :
@@ -13,7 +14,6 @@ ProverPietrzak::operator()(const VerifierPietrzak& verifier, long _d_max) const 
   // constants
   const auto puzzle = verifier.get_RSWPuzzle();
   const auto hash = verifier.get_Hash();
-  const unsigned long lambda = puzzle.get_lambda();
   const unsigned long t = puzzle.get_log2T();
   const bytevec _T = puzzle.get_T();
   const bytevec _N = puzzle.get_N();
@@ -47,6 +47,14 @@ ProverPietrzak::operator()(const VerifierPietrzak& verifier, long _d_max) const 
     for (int k = 0; k < cache[i-1].size(); k++) {
       cache[i-1][k] = BN_CTX_get(ctx);
     }
+  }
+  const unsigned long err = ERR_get_error();
+  if (err != 0) {
+    char* err_char = new char[300];
+    ERR_error_string_n(err, err_char, 300);
+    std::string err_string(err_char);
+    delete[] err_char;
+    throw std::runtime_error(err_string);
   }
 
   // set initial values
