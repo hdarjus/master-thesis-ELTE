@@ -1,9 +1,8 @@
-#include "include/ProverPietrzak.h"
-#include "include/VerifierPietrzak.h"
+#include "include/ProverWesolowski.h"
+#include "include/VerifierWesolowski.h"
 #include "include/types.h"
 #include <iostream>
 #include <string>
-#include <cstring>
 #include <random>
 #include <fcntl.h>    /* For O_RDWR */
 #include <unistd.h>   /* For open() */
@@ -11,23 +10,14 @@
 using namespace std;
 
 int main (int argc, char* argv[]) {
-  if (argc != 6) {  // command, lambda, t, lambdaRSW, d, key_size
-    throw runtime_error("The parameters are: lambda, t, lambdaRSW, d, and key_size");
+  if (argc != 4) {  // command, lambda, t, lambdaRSW
+    throw runtime_error("The parameters are: lambda, t, and lambdaRSW");
   }
 
   // read input parameters
   unsigned long lambda = stoul(argv[1]);
   unsigned long t = stoul(argv[2]);
   unsigned long lambdaRSW = stoul(argv[3]);
-  long d_max;
-  if (strcmp("thalf", argv[4]) == 0) {
-    d_max = t/2;
-  } else if (strcmp("t", argv[4]) == 0) {
-    d_max = t;
-  } else {
-    d_max = stol(argv[4]);
-  }
-  unsigned int key_size = stoul(argv[5]);  // 16, 24, or 32
 
   // seed the C++ random engine properly
   char buf[50];
@@ -51,9 +41,9 @@ int main (int argc, char* argv[]) {
     xi = static_cast<decltype(x)::value_type>(gen_byte(engine));
   }
 
-  VerifierPietrzak verifier(lambda, t, x, lambdaRSW, key_size);
-  ProverPietrzak prover;
-  auto solution = prover(verifier, d_max);
+  VerifierWesolowski verifier(lambda, t, x, lambdaRSW);
+  ProverWesolowski prover;
+  auto solution = prover(verifier);
   if (verifier(solution)) {
     cout << "Verified!" << endl << endl;
   } else {
@@ -63,9 +53,7 @@ int main (int argc, char* argv[]) {
   cout <<
     "lambda:    " << lambda << endl <<
     "t:         " << t << endl <<
-    "lambdaRSW: " << lambdaRSW << endl <<
-    "d_max:     " << d_max << endl <<
-    "key_size:  " << key_size << endl << endl;
+    "lambdaRSW: " << lambdaRSW << endl << endl;
 
   cout << "N:";
   for (const auto& ni : verifier.get_RSWPuzzle().get_N()) {
