@@ -11,13 +11,13 @@ Hash::Hash(const unsigned long _lambda, const unsigned int _key_size, const unsi
   }
   switch (key_size*divisor) {
     case 128:
-      cipher = EVP_aes_128_ctr;
+      cipher = EVP_aes_128_cbc;
       break;
     case 192:
-      cipher = EVP_aes_192_ctr;
+      cipher = EVP_aes_192_cbc;
       break;
     case 256:
-      cipher = EVP_aes_256_ctr;
+      cipher = EVP_aes_256_cbc;
       break;
     default:
       throw std::runtime_error("key_size not yet implemented");
@@ -46,13 +46,13 @@ Hash::Hash(const unsigned long _lambda, const bytevec& _key, const bytevec& _iv)
   }
   switch (key_size*divisor) {
     case 128:
-      cipher = EVP_aes_128_ctr;
+      cipher = EVP_aes_128_cbc;
       break;
     case 192:
-      cipher = EVP_aes_192_ctr;
+      cipher = EVP_aes_192_cbc;
       break;
     case 256:
-      cipher = EVP_aes_256_ctr;
+      cipher = EVP_aes_256_cbc;
       break;
     default:
       throw std::runtime_error("key_size not yet implemented");
@@ -91,8 +91,7 @@ const void Hash::operator()(const BIGNUM* in, BIGNUM* out) const {
   ctext.resize(out_len1 + out_len2);
 
   // convert to BIGNUM
-  BN_bin2bn((const byte*)&ctext[0], (int)ctext.size(), out);
-  BN_mask_bits(out, lambda);
+  BN_bin2bn((const byte*)&ctext[ctext.size()-lambda], (int)lambda, out);
 }
 
 const unsigned int Hash::get_key_size() const {

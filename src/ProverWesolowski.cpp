@@ -1,10 +1,13 @@
 #include "../include/ProverWesolowski.h"
 
 ProverWesolowski::ProverWesolowski() :
+    durations(4),
     ctx_ptr(BN_CTX_free_ptr(BN_CTX_secure_new(), ::BN_CTX_free)) { }
 
 typename ProverWesolowski::solution
 ProverWesolowski::operator()(const VerifierWesolowski& verifier) const {
+  durations.assign(durations.size(), decltype(durations)::value_type::zero());
+
   BN_CTX* ctx = ctx_ptr.get();
   BN_CTX_start(ctx);
 
@@ -17,6 +20,7 @@ ProverWesolowski::operator()(const VerifierWesolowski& verifier) const {
   const bytevec _x = puzzle.get_x();
 
   // helper variables
+  const auto start_allocation = std::chrono::high_resolution_clock::now();
   BIGNUM* x = BN_CTX_get(ctx);
   BIGNUM* T = BN_CTX_get(ctx);
   BIGNUM* N = BN_CTX_get(ctx);
@@ -26,6 +30,7 @@ ProverWesolowski::operator()(const VerifierWesolowski& verifier) const {
   BIGNUM* r = BN_CTX_get(ctx);
   BIGNUM* y = BN_CTX_get(ctx);
   BIGNUM* xy = BN_CTX_get(ctx);
+  durations[0] = std::chrono::high_resolution_clock::now() - start_allocation;
 
   // set initial values
   BN_bin2bn(_x.data(), (int)_x.size(), x);
@@ -38,19 +43,26 @@ ProverWesolowski::operator()(const VerifierWesolowski& verifier) const {
 
   // compute y
   BN_copy(y, x);
+  const auto start_y = std::chrono::high_resolution_clock::now();
   for (BN_one(tt); BN_cmp(tt, T) <= 0;  BN_add(tt, tt, BN_value_one())) {
     BN_mod_sqr(y, y, N, ctx);
   }
+  durations[1] = std::chrono::high_resolution_clock::now() - start_y;
   bn2bytevec(y, _y);
 #ifdef _DEBUG
       std::cout << "y:\t" << print_bn(y) << std::endl;
 #endif
 
   // hash x||y
+  auto start_mu_minus_hash = std::chrono::high_resolution_clock::now();
   BN_copy(xy, x);
   BN_lshift(xy, xy, BN_num_bits(N));
   BN_add(xy, xy, y);
+  durations[2] = std::chrono::high_resolution_clock::now() - start_mu_minus_hash;
+  const auto start_hash = std::chrono::high_resolution_clock::now();
   hash(xy, p);
+  durations[3] = std::chrono::high_resolution_clock::now() - start_hash;
+  start_mu_minus_hash = std::chrono::high_resolution_clock::now();
 #ifdef _DEBUG
       //BN_set_word(p, 7);
       std::cout << "p:\t" << print_bn(p) << std::endl;
@@ -86,6 +98,7 @@ ProverWesolowski::operator()(const VerifierWesolowski& verifier) const {
 #endif
     }
   }
+  durations[2] += std::chrono::high_resolution_clock::now() - start_mu_minus_hash;
   bn2bytevec(pi, _pi);
 #ifdef _DEBUG
       std::cout << "---------------------------------------------------" << std::endl;

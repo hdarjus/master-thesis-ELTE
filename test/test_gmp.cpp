@@ -28,8 +28,8 @@ int main(int argc, char* argv[]) {
       si = static_cast<byte>(gen_byte(engine));
     }
     cout << "seed: ";
-    for (const auto& i : seed)
-      cout << (int)i << ' ';
+    for (const auto& si : seed)
+      cout << (int)si << ' ';
     cout << endl;
 
     mpz_import(mpz_seed.get_mpz_t(), seed.size(), 1, sizeof(seed[0]), 1, 0, seed.data());

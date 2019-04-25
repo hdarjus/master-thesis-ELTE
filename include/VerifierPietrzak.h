@@ -7,6 +7,8 @@
 #include "util.h"
 
 #include <iostream>
+#include <chrono>
+#include <vector>
 
 class VerifierPietrzak {
 public:
@@ -32,9 +34,11 @@ public:
   RSWPuzzle get_RSWPuzzle () const;
   bool operator()(const solution& sol) const;
 
+  mutable std::vector<typename std::chrono::high_resolution_clock::duration> durations;
+
 private:
-  Hash hash;
-  RSWPuzzle puzzle;
+  const Hash hash;
+  const RSWPuzzle puzzle;
   BN_CTX_free_ptr ctx_ptr;
 };
 

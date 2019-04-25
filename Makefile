@@ -2,7 +2,7 @@ PKG_FOLDER = $(shell pwd -P)
 LOCAL_FOLDER = ${HOME}/.local
 CC = ccache gcc-8 
 CXX = ccache g++-8 
-CPPFLAGS = -D_DEBUG -I$(LOCAL_FOLDER)/include -std=c++17 
+CPPFLAGS = -I$(LOCAL_FOLDER)/include -std=c++17 # -D_DEBUG 
 CFLAGS = 
 CXXFLAGS = -g -O0 -fPIC -fexceptions 
 TARGET = lib/libvdf.so
@@ -20,9 +20,12 @@ obj = $(objtmp:.cpp=.o)
 testsrc = $(wildcard test/*.cpp)
 testbin = $(testsrc:.cpp=.out)
 testdep = $(testsrc:.cpp=.d)
+timingsrc = $(wildcard timing_*.cpp)
+timingbin = $(timingsrc:.cpp=.out)
+timingdep = $(timingsrc:.cpp=.d)
 
 .PHONY: all
-all: $(TARGET) test
+all: $(TARGET) test timing
 
 $(TARGET): $(obj)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -shared -o $@ $^ $(LDFLAGS) 
@@ -41,6 +44,17 @@ test/%.d: test/%.cpp
 test/%.out: test/%.cpp $(TARGET) test/%.d
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -o $@ $< $(TEST_LDFLAGS)
 
+.PHONY: timing
+timing: $(timingbin) $(timingdep)
+
+./%.d: ./%.cpp
+	$(CXX) $(CPPFLAGS) $(CXXLAGS) $< -MM -MT $(@:.d=.o) >$@
+
+-include $(timingdep)
+
+./%.out: ./%.cpp $(TARGET) ./%.d
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -o $@ $< $(TEST_LDFLAGS)
+
 .PHONY: run
 run: $(testbin)
 	for testfile in $(testbin); do \
@@ -50,9 +64,5 @@ run: $(testbin)
 
 .PHONY: clean
 clean:
-	rm -f $(obj) $(TARGET) $(testbin)
-
-.PHONY: cleandep
-cleandep:
-	rm -f $(testdep)
+	rm -f $(obj) $(TARGET) $(testbin) $(testdep) $(timingbin) $(timingdep) 
 

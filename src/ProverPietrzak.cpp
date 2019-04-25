@@ -3,11 +3,17 @@
 #include <openssl/err.h>
 #include <bitset>
 
+#include <chrono>
+#include <vector>
+
 ProverPietrzak::ProverPietrzak() :
+    durations(4),
     ctx_ptr(BN_CTX_free_ptr(BN_CTX_secure_new(), ::BN_CTX_free)) { }
 
 typename ProverPietrzak::solution
 ProverPietrzak::operator()(const VerifierPietrzak& verifier, long _d_max) const {
+  durations.assign(durations.size(), decltype(durations)::value_type::zero());
+
   BN_CTX* ctx = ctx_ptr.get();
   BN_CTX_start(ctx);
 
@@ -24,6 +30,7 @@ ProverPietrzak::operator()(const VerifierPietrzak& verifier, long _d_max) const 
   if (d_max > t) {
     throw std::runtime_error("d_max is too large");
   }
+  const auto start_allocation = std::chrono::high_resolution_clock::now();
   BIGNUM* mu = BN_CTX_get(ctx);
   BIGNUM* N = BN_CTX_get(ctx);
   BIGNUM* T = BN_CTX_get(ctx);
@@ -48,6 +55,7 @@ ProverPietrzak::operator()(const VerifierPietrzak& verifier, long _d_max) const 
       cache[i-1][k] = BN_CTX_get(ctx);
     }
   }
+  durations[0] = std::chrono::high_resolution_clock::now() - start_allocation;
   const unsigned long err = ERR_get_error();
   if (err != 0) {
     char* err_char = new char[300];
@@ -69,6 +77,7 @@ ProverPietrzak::operator()(const VerifierPietrzak& verifier, long _d_max) const 
 
   // calculate _y and save partial results
   BN_copy(y, x);
+  const auto start_y = std::chrono::high_resolution_clock::now();
   for (BN_one(tt); BN_cmp(tt, T) <= 0;  BN_add(tt, tt, BN_value_one())) {
     BN_mod_sqr(y, y, N, ctx);
     bool saved = false;
@@ -83,16 +92,21 @@ ProverPietrzak::operator()(const VerifierPietrzak& verifier, long _d_max) const 
       }
     }
   }
+  durations[1] = std::chrono::high_resolution_clock::now() - start_y;
   bn2bytevec(y, _y);
 
   // calculate xy_help that helps the hashing step
+  auto start_mu_minus_hash = std::chrono::high_resolution_clock::now();
   BN_copy(xy_help, x);
   BN_lshift(xy_help, xy_help, BN_num_bits(N));
   BN_add(xy_help, xy_help, y);
   BN_lshift(xy_help, xy_help, BN_num_bits(N));
+  durations[2] = std::chrono::high_resolution_clock::now() - start_mu_minus_hash;
   
   // calculate _mu
+  decltype(std::chrono::high_resolution_clock::now()) start_hash;
   for (unsigned long i = 1; i <= t; i++) {
+    start_mu_minus_hash = std::chrono::high_resolution_clock::now();
     BN_rshift1(Tip1, Tip1);
     if (i > d_max) {  // we have to do sequential squarings
       BN_copy(mu, x);
@@ -126,7 +140,11 @@ ProverPietrzak::operator()(const VerifierPietrzak& verifier, long _d_max) const 
 #ifdef _DEBUG
       std::cout << "xymu:\t" << print_bn_hex(xymu) << std::endl;
 #endif
+    durations[2] += std::chrono::high_resolution_clock::now() - start_mu_minus_hash;
+    start_hash = std::chrono::high_resolution_clock::now();
     hash(xymu, r);
+    durations[3] += std::chrono::high_resolution_clock::now() - start_hash;
+    start_mu_minus_hash = std::chrono::high_resolution_clock::now();
 #ifdef _DEBUG
       std::cout << "r:\t" << print_bn(r) << std::endl;
 #endif
@@ -142,6 +160,7 @@ ProverPietrzak::operator()(const VerifierPietrzak& verifier, long _d_max) const 
     // get the new y
     BN_mod_exp(prod_help, mu, r, N, ctx);
     BN_mod_mul(y, prod_help, y, N, ctx);
+    durations[2] += std::chrono::high_resolution_clock::now() - start_mu_minus_hash;
 #ifdef _DEBUG
       std::cout << "y:\t" << print_bn(y) << std::endl;
       std::cout << "----------------" << std::endl << std::endl;

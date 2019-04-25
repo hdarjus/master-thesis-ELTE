@@ -7,6 +7,8 @@
 #include "util.h"
 
 #include <iostream>
+#include <chrono>
+#include <vector>
 
 class VerifierWesolowski {
 public:
@@ -27,6 +29,8 @@ public:
   Hash2Prime get_Hash () const;
   RSWPuzzle get_RSWPuzzle () const;
   bool operator()(const solution& sol) const;
+
+  mutable std::vector<typename std::chrono::high_resolution_clock::duration> durations;
 
 private:
   mutable Hash2Prime hash;

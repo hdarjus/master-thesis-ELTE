@@ -12,7 +12,6 @@ int main(int argc, char* argv[]) {
   BN_dec2bn(&N_bn, "799979478482341");
   bytevec N = bn2bytevec(N_bn);
 
-
   /*  TEST 1  */
   VerifierPietrzak verifier(20, 8, {97}, N);
   ProverPietrzak prover;
@@ -31,6 +30,12 @@ int main(int argc, char* argv[]) {
   } else {
     std::cout << "1. Oh no: Falsified ****************************************************************************" << std::endl << std::endl << std::endl;
   }
+
+  std::cout << "Prover times:";
+  for (const auto& d : prover.durations) {
+    std::cout << ' ' << d.count() << " nanoseconds,";
+  }
+  std::cout << std::endl;
 
   //pi = sol.first;  // sol does not change
   //std::cout << print_bytevec(sol.second) << std::endl << std::endl;
@@ -107,7 +112,7 @@ int main(int argc, char* argv[]) {
     std::cout << "8. Good: Falsified" << std::endl;
   } /* END TEST 4 */
 
-  /*  TEST 5  large values */
+  /*  TEST 5  large values * /
   VerifierPietrzak verifier5(100, 5, {97, 111, 201, 1, 0, 0, 111, 240}, 2048);
   ProverPietrzak prover5;
   const auto sol5 = prover5(verifier5, 3);
@@ -125,7 +130,7 @@ int main(int argc, char* argv[]) {
     std::cout << "10. Oh no: Verified" << std::endl;
   } else {
     std::cout << "10. Good: Falsified" << std::endl;
-  } /* END TEST 4 */
+  } / * END TEST 4 */
 
   return 0;
 }
